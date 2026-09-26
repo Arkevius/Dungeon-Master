@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Draft v0.1 |
+| **Status** | Draft v0.2 |
 | **Date** | 2026-09-26 |
 | **Owner** | Product (TBD) |
 | **Related** | [Technical Design Document](./TDD.md) · [Application flow diagram](./assets/app-flow-diagram.png) |
@@ -11,7 +11,7 @@
 
 ## 1. Overview
 
-**Dungeon Master Companion** is an AI-powered prep and at-the-table tool for tabletop RPG Game Masters (GMs/DMs). It lets a DM quickly generate a whole world or any single piece of one (a country, a city, a shop, an NPC, a dungeon, an encounter), refine it through an edit-and-regenerate loop, save it into a connected campaign library, and then run it at the table from a fast, read-optimized **Game Mode** with a built-in **Combat Tracker**.
+**Dungeon Master Companion** is an AI-powered prep and at-the-table tool for tabletop RPG Game Masters (GMs/DMs). It is built **only for the DM**: players never use it and never see it. It lets a DM quickly generate a whole world or any single piece of one (a country, a city, a shop, an NPC, a dungeon, an encounter), refine it through an edit-and-regenerate loop, save it into a connected campaign library, and then run it at the table from a fast, read-optimized **Game Mode** with a built-in **Combat Tracker**.
 
 The product combines two kinds of generation:
 
@@ -30,7 +30,7 @@ DMs spend hours of prep per session creating content their players may never see
 
 One tool that **generates, organizes, and runs** campaign content:
 
-1. **Generate** any entity at any level of the world hierarchy. Every input is optional: fill in as much or as little as you like and the rest is chosen for you.
+1. **Generate** any entity at any level of the world hierarchy. Every input is optional. Clicking **Generate** with nothing filled in produces something that fits the established world: its races, religions, cultures, languages and dialects, and regional economy. The DM can also type a free-text **direction** to steer the result, or to deliberately override what the world has established.
 2. **Refine** the result by editing your choices and regenerating. Anything you like can be locked so it survives the next regeneration.
 3. **Save** entities into a connected hierarchy: World → Country → City/Town/Village → Business, with Characters, Dungeons, and Encounters attached wherever they belong.
 4. **Run** the session from Game Mode. Drill down from the world map to a tavern's owner in a few taps, launch an encounter straight into the combat tracker, and generate new content on the spot, already placed in its context.
@@ -45,14 +45,15 @@ One tool that **generates, organizes, and runs** campaign content:
 |---|---|
 | G1 | Cut the time to prep a playable settlement (map, businesses, key NPCs, local dungeon) from hours to **under 5 minutes**. |
 | G2 | Let a DM improvise at the table: a context-aware NPC, shop, or encounter in **under 15 seconds**. |
-| G3 | Keep generated content **internally consistent**: names, geography, economy, and demographics agree across levels of the hierarchy. |
+| G3 | Keep generated content **internally consistent**: names, geography, economy, demographics, religions, cultures, and languages agree across levels of the hierarchy. Nothing generated clashes with the world's established canon unless the DM asks for it. |
+| G3a | Let the DM **steer or override** any generation in plain language, without filling in forms. |
 | G4 | Treat every generator as **usable standalone** (quick one-off) *and* **composable** (attached to a world). |
 | G5 | Run combat at the table without a separate tool. |
 
 ### 2.2 Non-Goals (v1)
 
-- A virtual tabletop (VTT) with tokens, fog of war, or player-facing live maps.
-- Player accounts, player-facing character sheets, or a rules engine for player characters beyond what the Combat Tracker needs.
+- **Anything for players.** The app is for DMs only. It has no player accounts, player-facing views, handouts shared with players, or player character sheets, and none are planned. Player characters appear only as entries the DM types into the Combat Tracker (name, AC, HP, initiative).
+- A virtual tabletop (VTT) with tokens, fog of war, or live maps.
 - Rule systems other than 5th-edition-compatible content (see Assumptions). The data model must not *prevent* other systems later.
 - AI-generated raster art (portraits, illustrated maps). Maps are procedural vector maps in v1.
 - A marketplace, or sharing content between users.
@@ -108,14 +109,34 @@ Encounter ──▶ Combat Tracker (runtime session)
 
 Every entity can also exist **unattached** (for example, a standalone NPC or a one-shot dungeon) and be attached to a parent later.
 
+### 4.2 World canon
+
+**Canon** is the set of facts a world has established. Every generation inside a world is built on it. Canon is organized by scope: the world defines the broad facts, and each country and settlement can narrow or add to them. Generation always uses the **effective canon** at the place where the new entity will live: the world's canon, plus its country's, plus its settlement's.
+
+| Canon category | Examples | Typical scopes |
+|---|---|---|
+| **Races / species** | Which species exist, where they live, their relative numbers, relations between them. | World (which exist) → country and settlement (local mix). |
+| **Religions** | Pantheon and deities, faiths and churches, cults, which faiths dominate or are banned in each region. | World (pantheon) → country (state faith, tolerated or banned faiths) → settlement (local temples and shrines). |
+| **Cultures** | Cultural groups and their influences, customs, dress, cuisine, values, festivals. | World → country (dominant culture, minority cultures) → settlement (local customs). |
+| **Languages and dialects** | Languages, regional dialects, scripts, and **naming conventions** (what names sound like in each culture). | World (languages) → country and region (dialects, naming style). |
+| **Economy** | Currencies, trade goods, regional industries, trade routes, exports and imports, prosperity. | Country → settlement → business. |
+| **Politics** | Governments, rulers, noble houses, factions and guilds, alliances and rivalries. | World → country → settlement. |
+| **History** | Eras, wars, cataclysms, founding events. | World → country → settlement. |
+| **World rules** | Level of magic and technology, planar cosmology, tone, content boundaries ("lines and veils"). | World. |
+
+Canon comes from three places:
+1. **Generation.** The World and Country generators establish most of it.
+2. **The DM**, who can edit canon directly in the **World Bible**.
+3. **Later generations** that introduce something new, such as a local cult. The DM approves these before they become canon (§6.2.1).
+
 ---
 
 ## 5. User Journeys
 
 ### J1: Build a world from scratch (Prep-heavy Paula)
 1. Home → **Create World**.
-2. She sets terrain to 40% forest, 20% mountains, 30% plains, 10% water; asks for 4 countries of mixed types; leaves everything else blank.
-3. **Generate World and Map.** A world map appears with named countries, a capital per country, and a list of settlements and dungeons.
+2. She sets terrain to 40% forest, 20% mountains, 30% plains, 10% water; asks for 4 countries of mixed types; leaves everything else blank. In the direction box she types: *"A world recovering from a war between the gods. Magic is rare and feared. Elves are nearly extinct."*
+3. **Generate World and Map.** A world map appears with named countries, a capital per country, and a list of settlements and dungeons. The **World Bible** is filled in as well: pantheon, languages, cultures, species and where they live, currencies, and a short history, all following her direction.
 4. She dislikes one country's government. She changes that country's type in **Edit Choices**, locks the other three countries, and regenerates.
 5. **Save.** The world, its countries, and its settlement stubs appear in World Saves. Each country and city is expanded to full detail when she opens it.
 
@@ -123,17 +144,23 @@ Every entity can also exist **unattached** (for example, a standalone NPC or a o
 1. Home → Generators → **City**.
 2. She picks "Small Town" and leaves everything else blank → **Generate City and Map**.
 3. She gets a town map, population and race mix, economy summary, 12 businesses with owners, notable NPCs, and one nearby dungeon hook.
-4. **Save** as a standalone city. Later she attaches it to a country in her world.
+4. **Save** as a standalone city. Later she attaches it to a country in her world. The app warns her that the town worships a god her world doesn't have, and offers to **adapt the town to the world** (it swaps in a local faith and dialect and rewrites the affected text) or keep the god as a local exception.
 
 ### J3: Improvise at the table (Improv Ian)
 1. Game Mode → World → Country → Town → Business List → "The Gilded Anvil".
-2. The players ask about the smith's apprentice, who doesn't exist yet. He taps **+ Character (here)**. An apprentice is generated in context (race drawn from the town's mix, job fitted to the business, a personality) and saved in the business's staff list.
-3. The players pick a fight. He opens **Encounters → Quick Encounter** (terrain and level pre-filled from the location) and launches it into the **Combat Tracker**.
+2. The players ask about the smith's apprentice, who doesn't exist yet. He taps **+ Character (here)** and **Generate** without filling anything in. An apprentice is generated in context: race drawn from the town's mix, a name in the local dialect, a faith the town actually practices, a job fitted to the business, and a personality. It is saved in the business's staff list.
+3. Later he wants a specific NPC, so he types *"a nervous tax collector who is secretly skimming for the thieves' guild"* and taps Generate. The NPC follows his direction and still fits the town.
+4. The players pick a fight. He opens **Encounters → Quick Encounter** (terrain and level pre-filled from the location) and launches it into the **Combat Tracker**.
 
 ### J4: Run a dungeon (One-shot Omar)
 1. Generators → **Dungeon**: underground ruins, level 5, 8 rooms → **Generate Dungeon and Map**.
 2. Each room has a description. Encounter rooms have balanced encounters created with the Encounter generator.
-3. Game Mode → Dungeon List → Dungeon Details → Encounters → Encounter Details → **Combat Tracker**: roll monster initiative, enter player initiative, track damage.
+3. Game Mode → Dungeon List → Dungeon Details → Encounters → Encounter Details → **Combat Tracker**: roll monster initiative, type in the party's initiative rolls, track damage.
+
+### J5: Break the rules on purpose (Prep-heavy Paula)
+1. Her country of Kharvos has no dwarves in its canon. From Kharvos, she opens the Character generator and types: *"A dwarven exile, the last survivor of a clan the king wiped out."*
+2. **Generate.** The character is a dwarf, as asked. A notice explains: *"Kharvos has no dwarves in its canon. Kept as an exception for this character."* It offers **Add to canon** (for example, "a few dwarven exiles live in Kharvos") and **Undo**.
+3. The rest of the character still follows canon: a Kharvos dialect name, a local faith he has rejected, prices in the local currency.
 
 ---
 
@@ -157,19 +184,52 @@ These requirements apply to all seven generators (World, Country, City, Business
 
 | ID | Requirement | Pri |
 |---|---|---|
-| GEN-1 | **All choices are optional.** Any input left blank is resolved automatically, using the parent context when there is one and sensible defaults otherwise. | P0 |
+| GEN-1 | **All choices are optional.** Any input left blank is resolved automatically from the world's canon and parent context (§6.2.1), or from sensible defaults when there is no world. | P0 |
 | GEN-2 | **Generate → Edit Choices → Generate loop.** After generating, the user can edit the choices and regenerate as many times as they want before saving. | P0 |
 | GEN-3 | **Resolved choices are shown.** After generation, the Edit Choices panel shows the value the system picked for every input the user left blank, so the user can adjust it. | P0 |
 | GEN-4 | **Locking.** The user can lock individual output fields or child entities (a name, a country, a business) so regeneration keeps them. | P1 |
 | GEN-5 | **Partial regenerate.** Regenerate a single field or section (for example, "new personality", "new name", "reroll this room") without regenerating the whole entity. | P1 |
 | GEN-6 | **Direct editing.** Every generated text and numeric field can be edited by hand before or after saving. | P0 |
 | GEN-7 | **Seeded reproducibility.** Each generation records a seed. The same seed and choices reproduce the same procedural output (maps, numbers). AI text may vary. | P0 |
-| GEN-8 | **Context awareness.** A generator started from inside a parent entity (for example, "new business in Riverbend") inherits the parent's context: race mix, economy, terrain, culture, level. | P0 |
+| GEN-8 | **Context awareness.** A generator started from inside a parent entity (for example, "new business in Riverbend") inherits the parent's context and effective canon: race mix, religions, cultures, languages and dialects, economy, terrain, level. | P0 |
 | GEN-9 | **Progress feedback.** Generation that takes longer than 2 s shows streaming progress: partial text and a stage indicator ("Placing settlements…"). | P0 |
 | GEN-10 | **Save** writes the entity, its choices, its seed, and any child entities to the matching Saves collection. | P0 |
 | GEN-11 | **Discard/cancel** leaves no persisted data, apart from an optional unsaved-draft recovery. | P1 |
-| GEN-12 | **"Surprise me"**: a one-click generate with every choice left blank. | P0 |
-| GEN-13 | **Tone and content settings**: a campaign-level tone (grimdark, heroic, whimsical…) and content boundaries ("lines and veils") that all AI generation respects. | P1 |
+| GEN-12 | **Generate as-is.** The **Generate** button is always enabled. Clicking it with no choices and no direction produces a complete entity that fits the world (§6.2.1). | P0 |
+| GEN-13 | **Tone and content settings**: a world-level tone (grimdark, heroic, whimsical…) and content boundaries ("lines and veils") that all AI generation respects. | P1 |
+| GEN-14 | **Generation location.** Every generator shows where the new entity is being generated ("Generating in: Riverbend › Kharvos › Aerth"). It defaults to where the generator was opened from, or to the active world. The DM can change it, or choose **No world** for a generic standalone entity. The location sets the canon used. The entity can be saved there, or saved unattached while still following that location's canon. | P0 |
+
+#### 6.2.1 World-consistent generation ("Generate as-is")
+
+When a generation happens inside a world, its **effective canon** (§4.2) is the foundation. Blank choices are filled from canon, not from generic defaults, and generated content must not contradict canon.
+
+| ID | Requirement | Pri |
+|---|---|---|
+| CAN-1 | **Races/species** are drawn from the local race mix. A race that doesn't exist in the effective canon is never introduced unless the DM asks for it. | P0 |
+| CAN-2 | **Religion.** Characters' faiths, temples, shrines, clergy, holy days, and religious references come from the faiths present in that region. Banned faiths appear only as secret or persecuted. No new deities or religions are invented unless the DM asks, or they are proposed as new canon (CAN-7). | P0 |
+| CAN-3 | **Culture.** Customs, dress, food, festivals, architecture, and values reflect the local culture and its recorded influences (for example, a border town shows both neighboring cultures). | P0 |
+| CAN-4 | **Language and dialect.** Names of people, places, and businesses follow the naming conventions of the local language or dialect. Characters' spoken languages come from canon. Dialogue and voice notes can reflect the dialect. | P0 |
+| CAN-5 | **Economy.** Currency, prices, trade goods, industries, and business inventories follow the regional economy (a mining town sells cheap iron and expensive fish). | P0 |
+| CAN-6 | **Politics and history.** References to rulers, factions, guilds, wars, and events use the existing canon entities and dates. | P0 |
+| CAN-7 | **New canon is proposed, not assumed.** When a generation invents something that would become canon (a new cult, a noble house, a historical event, a dialect), it is marked **proposed**. When the DM saves, they see the list and can accept each item (adding it to canon at the chosen scope), keep it local to that entity, or remove it. | P1 |
+| CAN-8 | **World Bible.** A view of the world's canon by category and scope, where the DM can browse and edit it. Edits apply to future generations and do not rewrite existing entities. | P0 |
+| CAN-9 | **Canon check on attach.** Attaching or moving an entity into a world or region checks it against the new canon. If there are clashes, the DM can **adapt it to the world** (clashing details are rewritten to fit, and locked fields are kept), keep the clashes as exceptions, or cancel. | P1 |
+| CAN-10 | **Consistency report.** On demand, the app lists entities in a world that contradict current canon (for example, after the DM edits the pantheon), with one-click adapt for each. | P2 |
+
+#### 6.2.2 DM direction prompt
+
+Every generator, including the in-context quick generate in Game Mode, has an optional free-text **direction** box ("Describe what you want…"). It works together with the structured choices.
+
+| ID | Requirement | Pri |
+|---|---|---|
+| DIR-1 | **Steer.** The direction shapes the result within canon. Examples: *"run-down dockside tavern that fronts for smugglers"*, *"a cheerful halfling priest"*, *"make the dungeon feel like a drowned cathedral"*. | P0 |
+| DIR-2 | **Fill choices from the direction.** Anything in the direction that maps to a structured choice (race, size, business type, level, prosperity…) fills that choice, and it appears in Edit Choices marked "from your direction". | P0 |
+| DIR-3 | **Override canon.** If the direction asks for something that contradicts canon ("a dwarf" in a country with no dwarves, "worships the Sun King" where that faith is banned), the DM's request wins. The result follows the direction, and everything else still follows canon. | P0 |
+| DIR-4 | **Overrides are shown and kept local by default.** Each override is listed in a non-blocking notice ("Kharvos has no dwarves. Kept as an exception for this character."), with **Add to canon** (at a chosen scope) and **Undo**. An override never changes canon unless the DM chooses to. | P0 |
+| DIR-5 | **Precedence** when inputs disagree: (1) choices the DM set explicitly and locked fields, (2) the direction, (3) canon, (4) defaults. If an explicit choice contradicts the direction (the size is set to Village but the direction says "a sprawling metropolis"), the explicit choice wins and the app shows a warning. | P0 |
+| DIR-6 | **The direction is saved with the entity** and shown in Edit Choices, so it can be edited and reused when regenerating. Partial regenerate (GEN-5) takes its own one-off direction ("make her older and more bitter"). | P0 |
+| DIR-7 | **World-level direction.** The World and Country generators accept a direction that shapes the canon they create (*"Bronze Age archipelago; sea gods; no elves"*). | P0 |
+| DIR-8 | **Direction history.** Recently used directions can be picked again from a list. | P2 |
 
 ### 6.3 World Generator
 
@@ -184,9 +244,10 @@ These requirements apply to all seven generators (World, Country, City, Business
 
 **Output: "Generate World and Map"**
 - A world map: landmasses, terrain biomes, rivers, country borders, settlement markers, dungeon markers.
-- World name, overview, a brief history or era, major factions and religions (P1).
+- World name and overview.
 - A list of countries (name, type, capital, one-line summary), created as **stubs** that are expanded to full detail on demand (see TDD §6.5).
 - Settlement and dungeon stubs, placed on the map.
+- **The world's canon**, saved to the World Bible (§4.2): species and where they live, pantheon and faiths, cultures, languages and naming conventions, currencies, major factions, and a history outline.
 
 | ID | Requirement | Pri |
 |---|---|---|
@@ -194,7 +255,8 @@ These requirements apply to all seven generators (World, Country, City, Business
 | WG-2 | Generate N country regions with borders that follow geography where possible (rivers, mountain ridges). | P0 |
 | WG-3 | Place settlements and dungeons in plausible locations (settlements near water and arable land; dungeons in remote or hostile terrain). | P0 |
 | WG-4 | Country, settlement, and dungeon stubs can be expanded to full detail with one action. | P0 |
-| WG-5 | World-level lore: overview, history, pantheon, and factions. | P1 |
+| WG-5 | Generate world-level canon (§4.2): overview, history, pantheon and faiths, species, cultures, languages and naming conventions, currencies, and factions. It must be consistent with the direction (DIR-7) and with any choices made (for example, the race mix determines which species exist). | P0 |
+| WG-6 | Each country receives its share of canon when generated: dominant and minority cultures, state and tolerated faiths, dialects, and its local species mix. | P0 |
 
 ### 6.4 Country Generator
 
@@ -206,7 +268,7 @@ These requirements apply to all seven generators (World, Country, City, Business
 | Economy | Prosperity (Destitute → Opulent), primary industries, exports and imports, currency notes, tax level. |
 | Amount of dungeons | Dungeons within the borders. |
 
-**Output: "Generate Country and Map"**: a regional map; the government and ruler; capital; settlement list; economy profile; culture, laws, and customs; relations with neighbors (P1); dungeon list.
+**Output: "Generate Country and Map"**: a regional map; the government and ruler; capital; settlement list; economy profile; culture, laws, and customs; relations with neighbors (P1); dungeon list; **country-level canon**: dominant and minority cultures, state, tolerated, and banned faiths, languages and dialects, and currency. All of it is drawn from, and consistent with, the world's canon.
 
 | ID | Requirement | Pri |
 |---|---|---|
@@ -225,7 +287,7 @@ These requirements apply to all seven generators (World, Country, City, Business
 | Business totals / type | Total count and/or counts by type (inn, tavern, blacksmith, general store, temple, alchemist…). |
 | Amount of dungeons | Nearby dungeons. |
 
-**Output: "Generate City and Map"**: a settlement map (districts, streets, landmarks, business locations); name; population and demographics; leadership and law; notable NPCs; a business list; rumors and plot hooks (P1); nearby dungeons.
+**Output: "Generate City and Map"**: a settlement map (districts, streets, landmarks, business locations); name; population and demographics; leadership and law; notable NPCs; a business list; rumors and plot hooks (P1); nearby dungeons; **local canon**: temples and shrines, local customs and festivals, and dialect, all drawn from the country's canon.
 
 | ID | Requirement | Pri |
 |---|---|---|
@@ -342,7 +404,7 @@ Game Mode
 | GM-1 | Drill-down navigation as above, with breadcrumbs and back navigation. Any list item opens its details in ≤ 1 tap/click. | P0 |
 | GM-2 | Interactive maps at every level. Clicking a map marker opens that entity. | P0 |
 | GM-3 | Global quick search (Ctrl/Cmd-K) across every entity in the active world. | P0 |
-| GM-4 | **In-context quick generate**: from any details page, generate a child (NPC, business, encounter) that inherits context and is saved automatically. | P0 |
+| GM-4 | **In-context quick generate**: from any details page, generate a child (NPC, business, encounter) that inherits context and canon, with an optional one-line direction, and is saved automatically. | P0 |
 | GM-5 | Character Details can add the character to the active Combat Tracker. | P0 |
 | GM-6 | Encounter Details can start a Combat Tracker session with all of the encounter's creatures. | P0 |
 | GM-7 | A session notes pad, pinned for the whole session and optionally linked to entities. | P1 |
@@ -350,12 +412,13 @@ Game Mode
 | GM-9 | Tablet-friendly layout, usable at 768 px width and up. | P0 |
 | GM-10 | Offline read-only access to the active world. | P2 |
 | GM-11 | Editing in Game Mode is limited to quick edits (notes, HP, flags). Full editing opens the generator or editor. | P0 |
+| GM-12 | Read access to the World Bible from any Game Mode page, filtered to the current location's effective canon ("What do they worship here? What language do they speak?"). | P0 |
 
 ### 6.12 Combat Tracker
 
 | ID | Requirement | Pri |
 |---|---|---|
-| CB-1 | **Character initiative**: enter initiative manually for player characters, or roll it for NPCs. | P0 |
+| CB-1 | **Character initiative**: the DM types in initiative for player characters, or rolls it for NPCs. Player characters are simple DM-entered entries (name, AC, HP, initiative). | P0 |
 | CB-2 | **Creature initiative**: roll automatically (d20 + initiative modifier) for every creature, individually or grouped by creature type. | P0 |
 | CB-3 | A sorted turn order with the current turn highlighted, next/previous turn, and a round counter. | P0 |
 | CB-4 | **Damage tracker**: apply damage or healing, temporary HP, max HP. Creatures at 0 HP are marked defeated. | P0 |
@@ -364,14 +427,13 @@ Game Mode
 | CB-7 | A quick stat-block view for the current combatant. | P0 |
 | CB-8 | The combat state survives a page reload or device sleep. Can be resumed. | P0 |
 | CB-9 | A combat log (who did what to whom, per round), exportable to session notes. | P1 |
-| CB-10 | A player-facing initiative display (a second screen or shareable link). | P2 |
 
 ### 6.13 AI Capabilities (cross-cutting)
 
 | ID | Requirement | Pri |
 |---|---|---|
 | AI-1 | AI output is **structured**: every generated entity conforms to a typed schema, not free text. | P0 |
-| AI-2 | Prompts include relevant **world context**: parent chain, sibling names to avoid duplicates, the campaign tone, and content boundaries. | P0 |
+| AI-2 | Prompts include relevant **world context**: the effective canon, the parent chain, sibling names to avoid duplicates, the world's tone, content boundaries, and the DM's direction. | P0 |
 | AI-3 | AI never overrides procedurally computed facts (population, prices, CR/XP, map geometry). It writes prose *about* them. | P0 |
 | AI-4 | Clear failure handling: if AI generation fails, procedural output is kept and the text fields are marked "retry". | P0 |
 | AI-5 | Per-user usage limits and visible usage (generations per month). | P1 |
@@ -406,6 +468,8 @@ Game Mode
 | Combat Tracker sessions per active user per month | ≥ 2 |
 | 4-week retention of new DMs | > 35% |
 | User-reported consistency errors per 100 generations | < 2 |
+| Unrequested canon clashes per 100 generations (automated eval) | < 1 |
+| Generations where the DM's direction was followed (eval rubric) | > 95% |
 
 ---
 
@@ -414,11 +478,11 @@ Game Mode
 | Milestone | Scope |
 |---|---|
 | **M0: Foundations** | Auth, data model, Saves library, procedural engine core (seeded RNG, name data), AI gateway. |
-| **M1: MVP (Standalone generators)** | Character, Business, City, Encounter, and Dungeon generators with the Generate ⇄ Edit loop. Saves. Basic Combat Tracker. |
-| **M2: Worlds** | World and Country generators, world and region maps, hierarchy linking and attach/detach, stub expansion. |
+| **M1: MVP (Standalone generators)** | Character, Business, City, Encounter, and Dungeon generators with the Generate ⇄ Edit loop and the direction prompt. Saves. Basic Combat Tracker. |
+| **M2: Worlds** | World and Country generators, world and region maps, World Bible and canon-consistent generation, overrides as exceptions, hierarchy linking and attach/detach, stub expansion. |
 | **M3: Game Mode** | Full drill-down, quick search, in-context quick generate, Combat Tracker integration. |
 | **M4: v1.0 polish** | Locking and partial regenerate, version history, export/import, conditions, Ask the World, tone settings, usage limits. |
-| **Later (P2)** | Offline mode, player-facing initiative display, additional rule systems, AI art. |
+| **Later (P2)** | Offline mode, consistency report, additional rule systems, AI art. |
 
 ---
 
@@ -426,7 +490,7 @@ Game Mode
 
 ### 10.1 Assumptions
 - A1: The default ruleset is 5th-edition compatible and uses openly licensed SRD content (CC-BY-4.0).
-- A2: v1 is single-user: one DM owns and sees their content.
+- A2: The app is for DMs only. Each DM's content is private to them. Players never use or see the app, and there are no plans for player features.
 - A3: The web app is the primary platform (desktop plus tablet browsers).
 - A4: Encounter generation accepts optional party size and difficulty inputs beyond the four in the diagram.
 - A5: The *Encounter* item in the Generators menu opens the Encounter Generator (it has no connector in the diagram).
@@ -436,18 +500,19 @@ Game Mode
 
 | Risk | Mitigation |
 |---|---|
-| AI inconsistency (contradicting saved facts) | Procedural facts are authoritative. Context injection. Schema validation. Post-generation consistency checks (TDD §7.6). |
+| AI inconsistency (contradicting saved facts or canon) | Procedural facts are authoritative. Canon references are chosen from lists of existing canon entries. Effective canon is included in every prompt. Schema validation. Post-generation canon checks (TDD §7.6). |
+| Direction overrides are misread (the app treats a harmless request as a canon override, or misses one) | Overrides are always shown with one-click Undo and Add to canon. Direction adherence and false-override rate are measured in evals. |
 | Cost per full-world generation | Progressive detail (stubs expanded on demand), prompt caching, batch processing for bulk expansion. |
 | Latency of large generations | Streaming, skeleton-first rendering, parallel child generation. |
 | IP and licensing | Limit bundled rules data to SRD content. Keep prompts and filters away from non-SRD protected names. |
 | Content safety | Campaign content settings, plus provider-side safety handling and refusal fallback (TDD §7.7). |
 
 ### 10.3 Open Questions
-1. Is multi-user sharing (co-DMs, read-only player views) in scope for v1.x?
+1. Should a DM be able to share a world with a co-DM? (Players are out of scope regardless.)
 2. How important is offline use at the table? It changes whether Game Mode must be local-first.
 3. Monetization: a free tier with generation limits, a subscription, or bring-your-own-API-key?
 4. Should systems other than 5e (Pathfinder 2e, OSR) be planned for v2?
-5. Do we need printable handouts (PDF) at MVP, or is on-screen use enough?
+5. Do DMs need printable reference sheets (PDF) at MVP, or is on-screen use enough?
 
 ---
 
@@ -465,6 +530,8 @@ Game Mode
 | Dungeon Generator inputs | §6.8 |
 | Encounter Generator inputs | §6.9 |
 | "Generate X (and Map)" ⇄ "Edit Choices" loop | GEN-2, GEN-3 |
+| *Added (not in diagram):* Generate as-is / world canon | §4.2, §6.2.1, GEN-12, GEN-14 |
+| *Added (not in diagram):* DM direction prompt | §6.2.2 |
 | World/Country/City/Business/Character/Dungeon/Encounter Saves | §6.10 |
 | Game Mode (World Details, Character List, Dungeon List, Encounter List) | §6.11 |
 | World / Country / City-Town-Village / Business Details drill-down | GM-1, GM-2 |
